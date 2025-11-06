@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login - Work Order Processor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg-1:#74b9ff;
+      --bg-2:#a29bfe;
+      --card:#ffffff;
+      --accent:#0984e3;
+      --accent-strong:#074ea8;
+      --muted:#636e72;
+      --radius:14px;
+      --shadow: 0 10px 25px rgba(0,0,0,0.12);
+      --shadow-hover: 0 14px 35px rgba(0,0,0,0.14);
+      --maxw:420px;
+      --gap:14px;
+      --pad:34px;
+    }
+
+    *{box-sizing:border-box;font-family:"Segoe UI",Roboto,Arial,sans-serif;}
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    .page {
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-container {
+      width:100%;
+      max-width:var(--maxw);
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:var(--pad);
+      box-shadow:var(--shadow);
+      transition:box-shadow .25s ease;
+    }
+
+    h2{
+      margin:0 0 12px 0;
+      font-size:22px;
+      color:#222831;
+      text-align:center;
+    }
+
+    .subtitle{
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    form { width:100%; }
+
+    .field {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:var(--gap);
+    }
+
+    label {
+      font-weight:700;
+      font-size:13px;
+      color:#2d3436;
+    }
+
+    input[type="text"],
+    input[type="password"]{
+      width:100%;
+      padding:11px 40px 11px 12px;
+      border-radius:10px;
+      border:1px solid #dfe6e9;
+      font-size:15px;
+      outline:none;
+      transition:box-shadow .15s ease,border-color .15s ease;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus{
+      border-color:var(--accent);
+      box-shadow:0 6px 18px rgba(9,132,227,0.12);
+    }
+
+    .password-row {
+      position:relative;
+      display:flex;
+      align-items:center;
+    }
+
+    .toggle-password {
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      cursor:pointer;
+      font-size:18px;
+      color:var(--muted);
+    }
+
+    .button-row {
+      display:flex;
+      gap:12px;
+      margin-top:6px;
+    }
+
+    .btn {
+      flex:1;
+      padding:11px 12px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      font-size:15px;
+      transition:background .2s ease;
+    }
+    .logout-btn {
+    background: #e53935;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.logout-btn:hover {
+    background: #c62828;
+}
+
+
+    .btn-primary{
+      background:var(--accent);
+      color:white;
+      box-shadow:0 6px 18px rgba(9,132,227,0.12);
+    }
+    .btn-primary:hover{ background:var(--accent-strong); }
+
+    .btn-ghost{
+      background:transparent;
+      border:1px solid #e0e0e0;
+      color:#333;
+    }
+    .btn-ghost:hover{ background:#f6f8fb; }
+
+    .error {
+      color:#d32f2f;
+      font-size:13px;
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .footer {
+      margin-top:18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    @media (max-width:480px){
+      .login-container { padding:24px; }
+      .button-row { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="login-container">
+      <h2>🔐 Sign in</h2>
+      <div class="subtitle">Access Work Order Processor</div>
+
+      <form method="POST" action="/login" autocomplete="on">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" required placeholder="Enter username" autocomplete="username">
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="password-row">
+            <input id="password" name="password" type="password" required placeholder="Enter password" autocomplete="current-password">
+            <i class="fa-solid fa-eye toggle-password" id="toggleIcon" onclick="togglePassword()"></i>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="btn btn-primary">Login</button>
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('username').value='';document.getElementById('password').value='';">Clear</button>
+        </div>
+
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+      </form>
+
+      <!-- <div class="footer">© 2025 Work Order Processing System</div> -->
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(){
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('toggleIcon');
+      if(pwd.type === 'password'){
+        pwd.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      }else{
+        pwd.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+  </script>
+</body>
+</html>

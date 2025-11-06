@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work Order Extractor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            width: 100%;
+            background: #1565c0;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .logout-btn {
+            background: #bbdefb;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #a8c7e1;
+        }
+
+        .container {
+            background: white;
+            padding: 30px 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 750px;
+            margin: 100px auto 40px auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #0d47a1;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            color: #333;
+        }
+
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus,
+        select:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0d47a1;
+        }
+
+        .cancel-btn {
+            background: #d32f2f;
+        }
+
+        .cancel-btn:hover {
+            background: #b71c1c;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 25px;
+        }
+
+        .upload-section {
+            margin-top: 25px;
+        }
+
+        .result, .skipped {
+            text-align: center;
+            margin-top: 20px;
+            border-radius: 10px;
+            padding: 15px;
+            font-weight: 500;
+        }
+
+        .result {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #a5d6a7;
+        }
+
+        .skipped {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        a.download-btn {
+            text-decoration: none;
+        }
+
+        .download-btn button {
+            background: #388e3c;
+            width: auto;
+            padding: 10px 25px;
+        }
+
+        .download-btn button:hover {
+            background: #2e7d32;
+        }
+
+        @media screen and (max-width: 650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .top-bar h1 {
+                font-size: 16px;
+            }
+
+            .container {
+                margin-top: 100px;
+                width: 90%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="top-bar">
+        <h1>ROKPOWER</h1>
+        <form action="/logout" method="get" style="margin: 0;">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>📄 Work Order Extractor</h2>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="form-grid">
+                <div class="form-item">
+                    <label>Enter Project ID</label>
+                    <input type="text" id="project_id" name="project_id" placeholder="e.g. PRJ12345" value="{{ project_id or '' }}">
+                </div>
+
+                <div class="form-item">
+                    <label>Enter Description</label>
+                    <input type="text" id="description" name="description" placeholder="Enter project description" value="{{ description or '' }}">
+                </div>
+
+                <div class="form-item">
+                    <label>Select Project Template</label>
+                    <select name="project_template" id="project_template" required>
+                        <option value="">-- Select Template --</option>
+                        {% for item in project_templates %}
+                            <option value="{{ item.id }}">{{ item.id }} - {{ item.desc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-item">
+                    <label>Select Customer</label>
+                    <select name="customer_id" id="customer_id" required>
+                        <option value="">-- Select Customer --</option>
+                        {% for item in customers %}
+                            <option value="{{ item.id }}">{{ item.id }} - {{ item.desc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-item">
+                    <label>Select Branch</label>
+                    <select name="branch_id" id="branch_id" required>
+                        <option value="">-- Select Branch --</option>
+                        {% for item in branches %}
+                            <option value="{{ item.id }}">{{ item.id }} - {{ item.desc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-item">
+                    <label>Select Task Type</label>
+                    <select name="type_value" id="type_value" required>
+                        <option value="">-- Select Type --</option>
+                        {% for item in task_types %}
+                            <option value="{{ item.id }}">{{ item.id }} - {{ item.desc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <label>Upload Excel File</label>
+                <input type="file" name="file" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Process File</button>
+                <button type="button" class="cancel-btn" onclick="window.location.href='/'">Cancel</button>
+            </div>
+        </form>
+
+        {% if cleaned_file %}
+        <div class="result">
+            ✅ File processed successfully! <br><br>
+            <a class="download-btn" href="{{ url_for('download_file', token=download_token) }}">
+                <button>⬇️ Download Cleaned File</button>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if skipped_sheets %}
+        <div class="skipped">
+            ⚠️ Skipped Sheets: {{ skipped_sheets|join(', ') }}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Prevent back navigation after login
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function () {
+                window.history.go(1);
+            };
+        }
+    </script>
+</body>
+</html>
